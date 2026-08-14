@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../state/app_state.dart';
 import '../models/models.dart';
 import '../widgets/glass_card.dart';
@@ -198,28 +199,28 @@ class LogisticsScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Map View (Simulated)
+                      // Map View (Real)
                       Expanded(
                         child: Stack(
                           children: [
-                            // Fake Map Background
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
+                            GoogleMap(
+                              initialCameraPosition: const CameraPosition(
+                                target: LatLng(19.432608, -99.133209),
+                                zoom: 13,
                               ),
-                            ),
-                            // Map Pins
-                            Positioned(
-                              top: 50, left: 100,
-                              child: _mapPin(Icons.local_shipping, Colors.blue), // Driver
-                            ),
-                            Positioned(
-                              top: 150, left: 200,
-                              child: _mapPin(Icons.location_on, Colors.red), // Next Stop
-                            ),
-                            Positioned(
-                              top: 250, left: 80,
-                              child: _mapPin(Icons.location_on, Colors.grey), // Future Stop
+                              markers: {
+                                const Marker(
+                                  markerId: MarkerId('driver'),
+                                  position: LatLng(19.432608, -99.133209),
+                                  infoWindow: InfoWindow(title: 'Repartidor'),
+                                ),
+                                const Marker(
+                                  markerId: MarkerId('next_stop'),
+                                  position: LatLng(19.442608, -99.143209),
+                                  infoWindow: InfoWindow(title: 'Siguiente Parada'),
+                                ),
+                              },
+                              zoomControlsEnabled: false,
                             ),
                             // Navigation overlay
                             Positioned(
