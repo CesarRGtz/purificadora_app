@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'screens/auth_wrapper.dart';
+import 'core/config/supabase_config.dart';
 import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // TODO: Reemplazar con tus credenciales de Supabase al final del proyecto
-  /*
-  await Supabase.initialize(
-    url: 'https://TU-PROYECTO.supabase.co',
-    anonKey: 'TU-ANON-KEY',
-  );
-  */
+  await SupabaseConfig.initialize();
 
   runApp(const PurificadoraApp());
 }

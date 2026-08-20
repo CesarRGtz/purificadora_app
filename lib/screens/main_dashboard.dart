@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../features/branches/branches_module.dart';
+import '../features/companies/companies_module.dart';
+import '../features/suppliers/suppliers_module.dart';
 import '../state/app_state.dart';
 import 'pos_screen.dart';
 import 'production_screen.dart';
@@ -24,6 +27,9 @@ class _MainDashboardState extends State<MainDashboard> {
     _NavItem(icon: Icons.water_drop_outlined, selectedIcon: Icons.water_drop, label: 'Producción'),
     _NavItem(icon: Icons.local_shipping_outlined, selectedIcon: Icons.local_shipping, label: 'Logística'),
     _NavItem(icon: Icons.inventory_2_outlined, selectedIcon: Icons.inventory, label: 'Inventario'),
+    _NavItem(icon: Icons.store_outlined, selectedIcon: Icons.store, label: 'Sucursales'),
+    _NavItem(icon: Icons.business_outlined, selectedIcon: Icons.business, label: 'Empresas'),
+    _NavItem(icon: Icons.local_shipping_outlined, selectedIcon: Icons.local_shipping, label: 'Proveedores'),
     _NavItem(icon: Icons.analytics_outlined, selectedIcon: Icons.analytics, label: 'Reportes'),
   ];
 
@@ -33,6 +39,9 @@ class _MainDashboardState extends State<MainDashboard> {
     'Bitácora de Producción',
     'Logística y Rutas',
     'Control de Inventario',
+    'Gestión de Sucursales',
+    'Empresas y Datos Fiscales',
+    'Catálogo de Proveedores',
     'Reportes y Exportación',
   ];
 
@@ -83,17 +92,7 @@ class _MainDashboardState extends State<MainDashboard> {
         ),
         bottomNavigationBar: isWide
             ? null
-            : NavigationBar(
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: (i) => setState(() => _selectedIndex = i),
-                backgroundColor: Colors.white,
-                indicatorColor: const Color(0xFF2B528A).withOpacity(0.1),
-                destinations: _navItems.map((n) => NavigationDestination(
-                  icon: Icon(n.icon, color: Colors.black54),
-                  selectedIcon: Icon(n.selectedIcon, color: const Color(0xFF2B528A)),
-                  label: n.label,
-                )).toList(),
-              ),
+            : _buildMobileNavigation(),
       ),
     );
   }
@@ -163,7 +162,7 @@ class _MainDashboardState extends State<MainDashboard> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Column(
+              child: ListView(
                 children: List.generate(_navItems.length, (index) {
                   final item = _navItems[index];
                   final isActive = _selectedIndex == index;
@@ -214,14 +213,18 @@ class _MainDashboardState extends State<MainDashboard> {
                                 size: 22,
                               ),
                               const SizedBox(width: 14),
-                              Text(
-                                item.label,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                                  color: isActive
-                                      ? const Color(0xFF2B528A)
-                                      : Colors.black54,
+                              Expanded(
+                                child: Text(
+                                  item.label,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                                    color: isActive
+                                        ? const Color(0xFF2B528A)
+                                        : Colors.black54,
+                                  ),
                                 ),
                               ),
                             ],
@@ -272,6 +275,43 @@ class _MainDashboardState extends State<MainDashboard> {
     );
   }
 
+  Widget _buildMobileNavigation() {
+    return SizedBox(
+      height: 80,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final minimumWidth = _navItems.length * 88.0;
+          final navigationWidth = constraints.maxWidth > minimumWidth
+              ? constraints.maxWidth
+              : minimumWidth;
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: navigationWidth,
+              child: NavigationBar(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: (i) =>
+                    setState(() => _selectedIndex = i),
+                backgroundColor: Colors.white,
+                indicatorColor: const Color(0xFF2B528A).withOpacity(0.1),
+                destinations: _navItems.map((item) {
+                  return NavigationDestination(
+                    icon: Icon(item.icon, color: Colors.black54),
+                    selectedIcon: Icon(
+                      item.selectedIcon,
+                      color: const Color(0xFF2B528A),
+                    ),
+                    label: item.label,
+                  );
+                }).toList(),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildTopBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -279,20 +319,31 @@ class _MainDashboardState extends State<MainDashboard> {
         color: const Color(0xFF2B528A),
         border: Border(bottom: BorderSide(color: Colors.black.withOpacity(0.1))),
       ),
-      child: Row(
-        children: [
-          Text(
-            _titles[_selectedIndex],
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
-          ),
-          const Spacer(),
-          Icon(Icons.calendar_today, size: 16, color: Colors.white.withOpacity(0.8)),
-          const SizedBox(width: 8),
-          Text(
-            _formatDate(DateTime.now()),
-            style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.8)),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final showDate = constraints.maxWidth > 620;
+          return Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _titles[_selectedIndex],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+              ),
+              if (showDate) ...[
+                const SizedBox(width: 24),
+                Icon(Icons.calendar_today, size: 16, color: Colors.white.withOpacity(0.8)),
+                const SizedBox(width: 8),
+                Text(
+                  _formatDate(DateTime.now()),
+                  style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.8)),
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -310,6 +361,12 @@ class _MainDashboardState extends State<MainDashboard> {
       case 4:
         return const InventoryScreen(key: ValueKey('inventory'));
       case 5:
+        return BranchesModule.buildPage(key: const ValueKey('branches'));
+      case 6:
+        return CompaniesModule.buildPage(key: const ValueKey('companies'));
+      case 7:
+        return SuppliersModule.buildPage(key: const ValueKey('suppliers'));
+      case 8:
         return const ReportsScreen(key: ValueKey('reports'));
       default:
         return const SizedBox.shrink();
